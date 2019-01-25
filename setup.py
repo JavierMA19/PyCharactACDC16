@@ -26,7 +26,7 @@ Created on Thu Dec 21 18:30:42 2017
 
 from setuptools import setup, find_packages
 
-_version = '0.0.1'
+_version = '0.0.1b'
 
 long_description = """
                    Library for GFET analysis tools                   
@@ -36,7 +36,7 @@ install_requires = ['numpy',
                     'matplotlib',
                     'quantities>=0.12',
                     'scipy',
-                    'neo>=0.5.2',
+                    'neo==0.6.1',
                     'nixio',
                     'deepdish',
                     ]
