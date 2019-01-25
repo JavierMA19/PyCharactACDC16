@@ -161,10 +161,12 @@ class WriteAnalog(Daq.Task):
         return Dev
 
     def SetVal(self, value):
-
         self.StartTask()
-        self.WriteAnalogScalarF64(1, -1, value, None)
+        print 'write'
+        self.WriteAnalogScalarF64(1, -1, value, None)        
+        print 'stop'
         self.StopTask()
+        
 
     def SetSignal(self, Signal, nSamps):
 
@@ -1193,5 +1195,10 @@ class Charact(DataProcess):
         if self.ContRecord:
             self.Inputs.StopContData()
             if self.GenTestSig:
-                self.VgOut.StopTask()
-                self.VgOut = None
+                self.VgOut.ClearTask()
+                self.VgOut = WriteAnalog(('ao2',))
+                self.VgOut.SetVal(0)
+#                self.VgOut.StopTask()
+#                self.VgOut.DisableStartTrig()
+#                self.VgOut.SetVal(0)
+#                self.VgOut = None
