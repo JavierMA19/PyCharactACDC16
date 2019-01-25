@@ -278,9 +278,7 @@ class CharactAPP(QtWidgets.QMainWindow):
                                    self.ChckOutBode,
                                    self.SpnNAvg]
 
-        self.ContEnableObjects = [self.SpnTestFreqMin,
-                                  self.SpnTestFreqMax,
-                                  self.SpnTestNFreqs,
+        self.ContEnableObjects = [self.SpnTestFreq,
                                   self.SpnTestAmp,
                                   self.SpnRefresh,
                                   self.SpnFsTime]
