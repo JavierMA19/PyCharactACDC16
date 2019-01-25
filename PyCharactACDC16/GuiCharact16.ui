@@ -2266,7 +2266,7 @@
          </font>
         </property>
         <property name="text">
-         <string>Test Signal</string>
+         <string>Signal</string>
         </property>
        </widget>
        <widget class="QCheckBox" name="chckTestSig">
@@ -2290,49 +2290,22 @@
          <rect>
           <x>32</x>
           <y>417</y>
-          <width>268</width>
+          <width>171</width>
           <height>43</height>
          </rect>
         </property>
         <layout class="QGridLayout" name="gridLayout_14">
          <item row="0" column="0">
-          <layout class="QVBoxLayout" name="verticalLayout_22">
-           <item>
-            <widget class="QLabel" name="label_35">
-             <property name="text">
-              <string>Freq Min</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QDoubleSpinBox" name="SpnTestFreqMin">
-             <property name="minimum">
-              <double>0.010000000000000</double>
-             </property>
-             <property name="maximum">
-              <double>10000.000000000000000</double>
-             </property>
-             <property name="singleStep">
-              <double>0.010000000000000</double>
-             </property>
-             <property name="value">
-              <double>10.000000000000000</double>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item row="0" column="1">
           <layout class="QVBoxLayout" name="verticalLayout_23">
            <item>
             <widget class="QLabel" name="label_36">
              <property name="text">
-              <string>Freq Max</string>
+              <string>Frequency</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QDoubleSpinBox" name="SpnTestFreqMax">
+            <widget class="QDoubleSpinBox" name="SpnTestFreq">
              <property name="minimum">
               <double>0.010000000000000</double>
              </property>
@@ -2349,25 +2322,7 @@
            </item>
           </layout>
          </item>
-         <item row="0" column="2">
-          <layout class="QVBoxLayout" name="verticalLayout_29">
-           <item>
-            <widget class="QLabel" name="label_39">
-             <property name="text">
-              <string>nFreqs</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QSpinBox" name="SpnTestNFreqs">
-             <property name="value">
-              <number>2</number>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item row="0" column="3">
+         <item row="0" column="1">
           <layout class="QVBoxLayout" name="verticalLayout_30">
            <item>
             <widget class="QLabel" name="label_40">

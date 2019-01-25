@@ -560,9 +560,7 @@ class CharactAPP(QtWidgets.QMainWindow):
         self.SetEnableObjects(val=False, Objects=self.ConfigTP)
 
     def SetTestSignalConfig(self):
-        self.Charac.SetContSig(FreqMin=self.SpnTestFreqMin.value(),
-                               FreqMax=self.SpnTestFreqMax.value(),
-                               nFreqs=self.SpnTestNFreqs.value(),
+        self.Charac.SetContSig(Freq=self.SpnTestFreq.value(),
                                Arms=self.SpnTestAmp.value(),
                                Fs=self.SpnFsTime.value())
 
