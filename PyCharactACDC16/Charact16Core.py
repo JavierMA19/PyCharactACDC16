@@ -568,8 +568,10 @@ class FFTBodeAnalysis():
         t = np.arange(0, Ps, Ts)
         
         Sig = Arms*np.sin(Freq*2*np.pi*(t))
-        Index,  = np.where(t == 1./Freq)
+        time = 1./Freq
+        Index,  = np.where(t == time)[0]
         Signal = Sig[:Index]
+        print Signal.shape
 
 
         self.ContSignal = Signal

@@ -528,7 +528,8 @@ class CharactAPP(QtWidgets.QMainWindow):
                                      QMessageBox.Ok)
                 self.ButCont.setText('Start')
                 return
-            self.SetTestSignalConfig()
+            if self.chckTestSig.isChecked():
+                self.SetTestSignalConfig()
             self.Charac.InitContMeas(Vds=self.SpnSVdsTP.value(),
                                      Vgs=self.SpnSVgsTP.value(),
                                      Fs=self.SpnFsTime.value(),
