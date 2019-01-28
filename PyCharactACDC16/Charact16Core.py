@@ -162,9 +162,7 @@ class WriteAnalog(Daq.Task):
 
     def SetVal(self, value):
         self.StartTask()
-        print 'write'
         self.WriteAnalogScalarF64(1, -1, value, None)        
-        print 'stop'
         self.StopTask()
         
 
@@ -573,7 +571,6 @@ class FFTBodeAnalysis():
         time = 1./Freq
         Index,  = np.where(t == time)[0]
         Signal = Sig[:Index]
-        print Signal.shape
 
 
         self.ContSignal = Signal
@@ -624,6 +621,7 @@ class FFTBodeAnalysis():
                 Gm[:, chi[1]] = Out/self.BodeSignal.FFTAmps
 
         return Gm
+
 
 ###############################################################################
 #####
@@ -768,7 +766,6 @@ class DataProcess(ChannelsConfig, FFTBodeAnalysis):
         FFTconf = self.BodeSignal.FFTconfs[self.iConf]
 
         if SeqConf:
-            print 'InitInptuns', SeqConf
             self.InitInputs(**SeqConf)
 
 #        signal, _ = self.BodeSignal.GenSignal(Ind=self.iConf)
@@ -1022,6 +1019,7 @@ class Charact(DataProcess):
         out_seg = neo.Segment(name='NewSeg')
 
         if RecAC:
+
             self.EventContAcDone = self.ContAcDoneCallback
             for chk, chi, in sorted(self.ACChannelIndex.iteritems()):
                 name = chk + '_AC'
@@ -1033,6 +1031,7 @@ class Charact(DataProcess):
                 out_seg.analogsignals.append(sig)
 
         if RecDC:
+
             self.EventContDcDone = self.ContDcDoneCallback
             for chk, chi, in sorted(self.DCChannelIndex.iteritems()):
                 name = chk + '_DC'

@@ -76,12 +76,12 @@ class ContinuousAcquisitionPlots():
 
         #  Init Plot figures
         self.PltRecs = PlotRecord()
-        self.PltRecs.CreateFig(slots, ShowLegend=True)
+        self.PltRecs.CreateFig(slots, ShowLegend=False)
         plt.show()
 
     def PlotUpdate(self, Time):
         self.PltRecs.ClearAxes()
-        self.PltRecs.PlotChannels(Time, Resamp=True)
+        self.PltRecs.PlotChannels(Time, Resamp=False)
         self.PltRecs
         self.PltRecs.Fig.canvas.draw()
 
@@ -449,7 +449,6 @@ class CharactAPP(QtWidgets.QMainWindow):
                         self.Charac.BodeSignal.Vpp[0]))
 
     def SetBodeConfig(self):
-        print 'Gui SetBodeConfig'
         if self.SpnFreqMin.value() and self.SpnFreqMax.value() > 0:
             self.Charac.SetBodeConfig(FreqMin=self.SpnFreqMin.value(),
                                       FreqMax=self.SpnFreqMax.value(),
@@ -605,7 +604,6 @@ class CharactAPP(QtWidgets.QMainWindow):
 ###############################################################################
 
     def CharSweepDoneCallBack(self, Dcdict, Acdict):
-        print 'Gui sweep done save data'
         if self.ChckSaveData.isChecked():
             Filename = self.FileName + "{}-Cy{}.h5".format('', self.Cycle)
             self.LblPath.setText(Filename)
@@ -639,7 +637,6 @@ class CharactAPP(QtWidgets.QMainWindow):
     def CharContDataCallback(self, tstop):
         if not self.ChckPauseCont.isChecked():
             time = (tstop - self.SpnWindow.value()*pq.s, tstop)
-            print tstop
             if self.PlotCont:
                 self.PlotCont.PlotUpdate(Time=time)
 
@@ -664,7 +661,6 @@ class CharactAPP(QtWidgets.QMainWindow):
     def ChckSaveDataChanged(self):
         if self.ChckSaveData.isChecked():
             self.FileName, _ = QFileDialog.getSaveFileName(self, 'Save File')
-            print self.FileName
             if not self.FileName:
                 self.ChckSaveData.setChecked(False)
                 return
