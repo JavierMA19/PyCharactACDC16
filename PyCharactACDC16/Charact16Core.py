@@ -535,6 +535,19 @@ class FFTTestSignal():
 ###############################################################################
 #####
 ###############################################################################
+def SetContSig(self, Freq=0.1, Arms=10e-3, Fs=1000):
+
+    nFFT = int(2**((np.around(np.log2(Fs/Freq))+1)+2))
+    Ts = 1./Fs
+    Ps = nFFT * Ts
+    t = np.arange(0, Ps, Ts)
+    
+    Sig = Arms*np.sin(Freq*2*np.pi*(t))
+    time = 1./Freq
+    Index,  = np.where(abs(t-time) == np.min(abs(t-time)))[0]
+    Signal = Sig[:Index]
+    
+    return Signal
 
 
 class FFTBodeAnalysis():
@@ -768,7 +781,7 @@ class DataProcess(ChannelsConfig, FFTBodeAnalysis):
         if SeqConf:
             self.InitInputs(**SeqConf)
 
-#        signal, _ = self.BodeSignal.GenSignal(Ind=self.iConf)
+        signal, _ = self.BodeSignal.GenSignal(Ind=self.iConf)
         self.SetContSignal(Signal=signal, nSamps=signal.size)
 
         if self.EventSetBodeLabel:
@@ -1057,7 +1070,7 @@ class Charact(DataProcess):
         sig = neo.AnalogSignal(signal=np.empty((0), float),
                                units=pq.V,
                                t_start=0*pq.s,
-                               sampling_rate=(10/Refresh)*pq.Hz,
+                               sampling_rate=(1/Refresh)*pq.Hz,
                                name='Vgs')
         out_seg.analogsignals.append(sig)
 
@@ -1065,7 +1078,7 @@ class Charact(DataProcess):
         sig = neo.AnalogSignal(signal=np.empty((0), float),
                                units=pq.V,
                                t_start=0*pq.s,
-                               sampling_rate=(10/Refresh)*pq.Hz,
+                               sampling_rate=(1/Refresh)*pq.Hz,
                                name='Vds')
         out_seg.analogsignals.append(sig)
 
