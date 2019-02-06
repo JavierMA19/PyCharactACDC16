@@ -1,13 +1,12 @@
 Metadata-Version: 1.1
 Name: PyCharactACDC16
-Version: 0.0.1
+Version: 0.0.1b0
 Summary: Electrodes stimulation tools
 Home-page: https://github.com/jmartinezaguilar/PyCharactACDC16
 Author: Javier Martinez-Aguilar
 Author-email: Javier.Martinez@imb-cnm.csic.es
 License: GPLv3
 Download-URL: https://github.com/jmartinezaguilar/PyCharactACDC16
-Description-Content-Type: UNKNOWN
 Description: 
                            Library for GFET analysis tools                   
                            

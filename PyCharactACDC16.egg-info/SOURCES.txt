@@ -1,7 +1,7 @@
 README.md
 setup.py
-PyCharactACDC16/CharactCore.py
-PyCharactACDC16/GuiCharact.py
+PyCharactACDC16/Charact16Core.py
+PyCharactACDC16/GuiCharact16.py
 PyCharactACDC16/__init__.py
 PyCharactACDC16.egg-info/PKG-INFO
 PyCharactACDC16.egg-info/SOURCES.txt
