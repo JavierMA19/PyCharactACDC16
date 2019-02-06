@@ -41,7 +41,7 @@ install_requires = ['numpy',
                     'deepdish',
                     ]
 
-console_scripts = ['GFETCharactGui16 = PyCharactACDC16.GuiCharact:main',
+console_scripts = ['GFETCharactGui16 = PyCharactACDC16.GuiCharact16:main',
                   ]
 
 entry_points = {'console_scripts': console_scripts, }
