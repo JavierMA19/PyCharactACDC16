@@ -535,19 +535,6 @@ class FFTTestSignal():
 ###############################################################################
 #####
 ###############################################################################
-def SetContSig(self, Freq=0.1, Arms=10e-3, Fs=1000):
-
-    nFFT = int(2**((np.around(np.log2(Fs/Freq))+1)+2))
-    Ts = 1./Fs
-    Ps = nFFT * Ts
-    t = np.arange(0, Ps, Ts)
-    
-    Sig = Arms*np.sin(Freq*2*np.pi*(t))
-    time = 1./Freq
-    Index,  = np.where(abs(t-time) == np.min(abs(t-time)))[0]
-    Signal = Sig[:Index]
-    
-    return Signal
 
 
 class FFTBodeAnalysis():
@@ -572,34 +559,6 @@ class FFTBodeAnalysis():
         self.BodeRh = BodeRh
         self.BodeOut = BodeOut
         self.RemoveDC = RemoveDC
-
-    def SetContSig(self, Freq=0.1, Arms=10e-3, Fs=1000):
-
-        nFFT = int(2**((np.around(np.log2(Fs/Freq))+1)+2))
-        Ts = 1./Fs
-        Ps = nFFT * Ts
-        t = np.arange(0, Ps, Ts)
-        
-        Sig = Arms*np.sin(Freq*2*np.pi*(t))
-        time = 1./Freq
-        Index,  = np.where(abs(t-time) == np.min(abs(t-time)))[0]
-        Signal = Sig[:Index]
-
-
-        self.ContSignal = Signal
-        self.ContTime = t
-#        self.ContSig = FFTTestSignal(FreqMin=FreqMin,
-#                                     FreqMax=FreqMax,
-#                                     nFreqs=nFreqs,
-#                                     Arms=Arms,
-#                                     nAvg=1)
-#        self.ContSig.FMinLow = None
-#        self.ContSig.FsH = Fs
-#        self.ContSig.__init__(FreqMin=FreqMin,
-#                              FreqMax=FreqMax,
-#                              nFreqs=nFreqs,
-#                              Arms=Arms,
-#                              nAvg=1)
 
     def CalcBode(self, Data, Ind, IVGainAC, ChIndexes):
 
@@ -656,7 +615,7 @@ class DataProcess(ChannelsConfig, FFTBodeAnalysis):
     DevCondition = 5e-8
     PSDDuration = None
     GenTestSig = None
-#    ContSig = None
+    ContSignal = None
     OldConfig = None
     GmH = None
     Gm = None
@@ -702,11 +661,25 @@ class DataProcess(ChannelsConfig, FFTBodeAnalysis):
             self.GateDataEveryNEvent = self.CalcGateContData
         if GenTestSig:
             self.GenTestSig = GenTestSig
-#            signal, _ = self.ContSig.GenSignal()
             self.SetContSignal(Signal=self.ContSignal,
                                nSamps=self.ContSignal.size)
         self.Inputs.ReadContData(Fs=Fs,
                                  EverySamps=Fs*Refresh)
+
+    def GenerateContSign(self, Freq=0.1, Arms=10e-3, Fs=1000):
+
+        nFFT = int(2**((np.around(np.log2(Fs/Freq))+1)+2))
+        Ts = 1./Fs
+        Ps = nFFT * Ts
+        t = np.arange(0, Ps, Ts)
+        
+        Sig = Arms*np.sin(Freq*2*np.pi*(t))
+        time = 1./Freq
+        Index,  = np.where(abs(t-time) == np.min(abs(t-time)))[0]
+        Signal = Sig[:Index]
+
+
+        self.ContSignal = Signal
 
     def CalcBiasData(self, Data):
         #  data = Data[1:, :]
