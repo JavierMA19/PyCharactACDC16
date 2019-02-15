@@ -164,10 +164,9 @@ class WriteAnalog(Daq.Task):
         self.StartTask()
         self.WriteAnalogScalarF64(1, -1, value, None)        
         self.StopTask()
-        
 
     def SetSignal(self, Signal, nSamps):
-
+        print 'WriteSetSignal'
         read = c_int32()
 
         self.CfgSampClkTiming('ai/SampleClock', 1, Daq.DAQmx_Val_Rising,
@@ -179,6 +178,7 @@ class WriteAnalog(Daq.Task):
         self.StartTask()
 
     def SetContSignal(self, Signal, nSamps):
+        print 'WriteSetSignal'
         read = c_int32()
 
         self.CfgSampClkTiming('ai/SampleClock', 1, Daq.DAQmx_Val_Rising,
@@ -310,6 +310,7 @@ class ChannelsConfig():
         self.Vds = Vds
 
     def SetSignal(self, Signal, nSamps):
+        print 'SetSignal'
         if not self.VgOut:
             self.VgOut = WriteAnalog(('ao2',))
         self.VgOut.DisableStartTrig()
@@ -317,6 +318,7 @@ class ChannelsConfig():
                              nSamps=nSamps)
 
     def SetContSignal(self, Signal, nSamps):
+        print 'SetContSignal'
         if not self.VgOut:
             self.VgOut = WriteAnalog(('ao2',))
         self.VgOut.DisableStartTrig()
@@ -666,20 +668,20 @@ class DataProcess(ChannelsConfig, FFTBodeAnalysis):
         self.Inputs.ReadContData(Fs=Fs,
                                  EverySamps=Fs*Refresh)
 
-    def GenerateContSign(self, Freq=0.1, Arms=10e-3, Fs=1000):
+    def SetContSig(self, Freq=0.1, Arms=10e-3, Fs=1000):
 
         nFFT = int(2**((np.around(np.log2(Fs/Freq))+1)+2))
         Ts = 1./Fs
         Ps = nFFT * Ts
         t = np.arange(0, Ps, Ts)
-        
+
         Sig = Arms*np.sin(Freq*2*np.pi*(t))
         time = 1./Freq
         Index,  = np.where(abs(t-time) == np.min(abs(t-time)))[0]
         Signal = Sig[:Index]
 
-
         self.ContSignal = Signal
+        self.ContTime = t
 
     def CalcBiasData(self, Data):
         #  data = Data[1:, :]
@@ -755,12 +757,13 @@ class DataProcess(ChannelsConfig, FFTBodeAnalysis):
             self.InitInputs(**SeqConf)
 
         signal, _ = self.BodeSignal.GenSignal(Ind=self.iConf)
-        self.SetContSignal(Signal=signal, nSamps=signal.size)
+        self.SetSignal(Signal=signal, nSamps=signal.size)
 
         if self.EventSetBodeLabel:
             self.EventSetBodeLabel(Vpp=self.BodeSignal.Vpp)
 
-        print 'Acquire Bode data for ', self.BodeSignal.BodeDuration[self.iConf], ' Seconds'
+        print('Acquire Bode data for ',
+              self.BodeSignal.BodeDuration[self.iConf], ' Seconds')
 
         self.ReadChannelsData(Fs=FFTconf.Fs,
                               nSamps=FFTconf.nFFT*self.BodeSignal.nAvg,
@@ -779,7 +782,8 @@ class DataProcess(ChannelsConfig, FFTBodeAnalysis):
         if FFTconf.AcqSequential is True:
 
             if self.SeqIndex <= len(self.InitConfig['Channels']) - 1:
-                Channel = [sorted(self.InitConfig['Channels'])[self.SeqIndex], ]
+                Channel = [sorted(self.InitConfig['Channels'])[self.SeqIndex], 
+                           ]
                 print 'Channel -->', Channel
                 SeqConf['Channels'] = Channel
                 self.SeqIndex += 1

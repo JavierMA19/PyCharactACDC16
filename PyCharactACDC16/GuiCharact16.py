@@ -558,9 +558,10 @@ class CharactAPP(QtWidgets.QMainWindow):
         self.SetEnableObjects(val=False, Objects=self.ConfigTP)
 
     def SetTestSignalConfig(self):
-        self.Charac.GenerateContSign(Freq=self.SpnTestFreq.value(),
-                                     Arms=self.SpnTestAmp.value(),
-                                     Fs=self.SpnFsTime.value())
+        print 'SetTestSignalConfig'
+        self.Charac.SetContSig(Freq=self.SpnTestFreq.value(),
+                               Arms=self.SpnTestAmp.value(),
+                               Fs=self.SpnFsTime.value())
 
     def VgsTimePlotChanged(self):
         if self.Charac.CharactRunning:
