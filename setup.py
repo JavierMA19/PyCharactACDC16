@@ -26,10 +26,10 @@ Created on Thu Dec 21 18:30:42 2017
 
 from setuptools import setup, find_packages
 
-_version = '0.0.2.1'
+_version = '0.0.2.2'
 
 long_description = """
-                   Library for GFET analysis tools                   
+                    Library for 16-channel GFET analysis tools
                    """
 
 install_requires = ['numpy',
@@ -42,7 +42,7 @@ install_requires = ['numpy',
                     ]
 
 console_scripts = ['GFETCharactGui16 = PyCharactACDC16.GuiCharact16:main',
-                  ]
+                   ]
 
 entry_points = {'console_scripts': console_scripts, }
 
@@ -64,7 +64,7 @@ classifiers = ['Development Status :: 3 - Alpha',
 
 setup(name="PyCharactACDC16",
       version=_version,
-      description="Electrodes stimulation tools",
+      description="Library for 16-channel GFET analysis tools",
       long_description=long_description,
       author="Javier Martínez Aguilar",
       author_email="Javier.Martinez@imb-cnm.csic.es",
