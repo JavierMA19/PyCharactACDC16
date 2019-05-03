@@ -26,7 +26,7 @@ Created on Thu Dec 21 18:30:42 2017
 
 from setuptools import setup, find_packages
 
-_version = '0.0.2.2'
+_version = '0.0.3'
 
 long_description = """
                     Library for 16-channel GFET analysis tools
@@ -39,6 +39,7 @@ install_requires = ['numpy',
                     'neo==0.6.1',
                     'nixio',
                     'deepdish',
+                    'pygfet',
                     ]
 
 console_scripts = ['GFETCharactGui16 = PyCharactACDC16.GuiCharact16:main',
