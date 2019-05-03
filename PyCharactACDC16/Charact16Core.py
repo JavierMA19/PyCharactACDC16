@@ -59,6 +59,7 @@ class ReadAnalog(Daq.Task):
         self.AutoRegisterDoneEvent(0)
 
     def GetDevName(self,):
+        print 'ReadAnalog GetDevName'
         # Get Device Name of Daq Card
         n = 1024
         buff = ctypes.create_string_buffer(n)
@@ -67,6 +68,7 @@ class ReadAnalog(Daq.Task):
             value = buff.value.decode()
         else:
             value = buff.value
+        value.split(',')[0]
         Dev = value + '/{}'
 
         return Dev
@@ -148,6 +150,7 @@ class WriteAnalog(Daq.Task):
         self.StopTask()
 
     def GetDevName(self,):
+        print 'ReadAnalog GetDevName'
         # Get Device Name of Daq Card
         n = 1024
         buff = ctypes.create_string_buffer(n)
@@ -156,6 +159,7 @@ class WriteAnalog(Daq.Task):
             value = buff.value.decode()
         else:
             value = buff.value
+        value.split(',')[0]
         Dev = value + '/{}'
 
         return Dev
