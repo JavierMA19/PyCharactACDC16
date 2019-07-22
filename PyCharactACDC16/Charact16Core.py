@@ -68,8 +68,16 @@ class ReadAnalog(Daq.Task):
             value = buff.value.decode()
         else:
             value = buff.value
-        value.split(',')[0]
-        Dev = value + '/{}'
+
+        Dev = None
+        value = value.replace(' ', '')
+        for dev in value.split(','):
+            if dev.startswith('Sim'):
+                continue
+            Dev = dev + '/{}'
+
+        if Dev is None:
+            print 'ERRROORR dev not found ', value
 
         return Dev
 
@@ -159,8 +167,16 @@ class WriteAnalog(Daq.Task):
             value = buff.value.decode()
         else:
             value = buff.value
-        value.split(',')[0]
-        Dev = value + '/{}'
+
+        Dev = None
+        value = value.replace(' ', '')
+        for dev in value.split(','):
+            if dev.startswith('Sim'):
+                continue
+            Dev = dev + '/{}'
+
+        if Dev is None:
+            print 'ERRROORR dev not found ', value
 
         return Dev
 
