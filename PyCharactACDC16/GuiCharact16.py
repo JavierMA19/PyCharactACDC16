@@ -363,12 +363,12 @@ class CharactAPP(QtWidgets.QMainWindow):
 
     def ButSweepClick(self):
         if self.Charac is None:
-            print 'Init Channels first'
+            print('Init Channels first')
             return
 
         # Event Start button
         if self.Charac.CharactRunning:
-            print 'Stop'
+            print('Stop')
             self.Charac.StopCharac()
         else:
             self.SetEnableObjects(val=False,
@@ -408,7 +408,7 @@ class CharactAPP(QtWidgets.QMainWindow):
             if self.Charac.CharactRunning:
                 self.ButSweep.setText('Stop')
             else:
-                print 'ERROR'
+                print('ERROR')
 
     def SweepVariables(self):
         if self.ChckSP.isChecked():
@@ -505,7 +505,7 @@ class CharactAPP(QtWidgets.QMainWindow):
 ###############################################################################
     def ButContClick(self):  # Evento button TimeCont
         if self.Charac is None:
-            print 'Init Channels first'
+            print('Init Channels first')
             return
 
         if self.Charac.CharactRunning:
@@ -542,7 +542,7 @@ class CharactAPP(QtWidgets.QMainWindow):
             if self.Charac.CharactRunning:
                 self.ButCont.setText('Stop')
             else:
-                print 'ERROR'
+                print('ERROR')
 
     def TimePlotConfig(self, Config):
         if Config == 'DC':
@@ -558,7 +558,7 @@ class CharactAPP(QtWidgets.QMainWindow):
         self.SetEnableObjects(val=False, Objects=self.ConfigTP)
 
     def SetTestSignalConfig(self):
-        print 'SetTestSignalConfig'
+        print('SetTestSignalConfig')
         self.Charac.SetContSig(Freq=self.SpnTestFreq.value(),
                                Arms=self.SpnTestAmp.value(),
                                Fs=self.SpnFsTime.value())
@@ -644,7 +644,7 @@ class CharactAPP(QtWidgets.QMainWindow):
 # Stop Events
 ###############################################################################
     def StopSweep(self):
-        print 'Stop'
+        print('Stop')
         self.SetEnableObjects(val=True, Objects=self.SweepEnableObjects)
         self.Charac.SetBias(Vds=0, Vgs=0)
         self.ButSweep.setText('Start')
