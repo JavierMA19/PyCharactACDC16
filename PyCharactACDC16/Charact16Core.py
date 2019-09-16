@@ -352,7 +352,7 @@ class ChannelsConfig():
     def _SortChannels(self, data, SortDict):
         (samps, inch) = data.shape
         sData = np.zeros((samps, len(SortDict)))
-        for chn, inds in SortDict.iteritems():
+        for chn, inds in SortDict.items():
             sData[:, inds[1]] = data[:, inds[0]]
         return sData
 
@@ -595,7 +595,7 @@ class FFTBodeAnalysis():
 
         if self.RemoveDC:
 
-            for chk, chi, in sorted(ChIndexes.iteritems()):
+            for chk, chi, in sorted(ChIndexes.items()):
                 Data[:, chi[1]] = Data[:, chi[1]] - np.mean(Data[:, chi[1]])
 
         FFTconf = self.BodeSignal.FFTconfs[Ind]
@@ -604,7 +604,7 @@ class FFTBodeAnalysis():
         Gm = np.ones((len(FFTconf.Finds),
                       inch))*np.complex(np.nan)
 
-        for chk, chi, in sorted(ChIndexes.iteritems()):
+        for chk, chi, in sorted(ChIndexes.items()):
             Out = self.BodeSignal.CalcFFT(Data=x[:, chi[1]],
                                           Ind=Ind)
 
@@ -1035,7 +1035,7 @@ class Charact(DataProcess):
         if RecAC:
 
             self.EventContAcDone = self.ContAcDoneCallback
-            for chk, chi, in sorted(self.ACChannelIndex.iteritems()):
+            for chk, chi, in sorted(self.ACChannelIndex.items()):
                 name = chk + '_AC'
                 sig = neo.AnalogSignal(signal=np.empty((0, 1), float),
                                        units=pq.V,
@@ -1047,7 +1047,7 @@ class Charact(DataProcess):
         if RecDC:
 
             self.EventContDcDone = self.ContDcDoneCallback
-            for chk, chi, in sorted(self.DCChannelIndex.iteritems()):
+            for chk, chi, in sorted(self.DCChannelIndex.items()):
                 name = chk + '_DC'
                 sig = neo.AnalogSignal(signal=np.empty((0, 1), float),
                                        units=pq.V,
@@ -1058,7 +1058,7 @@ class Charact(DataProcess):
 
         if RecGate:
             self.EventContGateDone = self.ContGateDoneCallback
-            for chk, chi, in sorted(self.GateChannelIndex.iteritems()):
+            for chk, chi, in sorted(self.GateChannelIndex.items()):
                 name = chk + '_Gate'
                 sig = neo.AnalogSignal(signal=np.empty((0, 1), float),
                                        units=pq.V,
@@ -1107,7 +1107,7 @@ class Charact(DataProcess):
 
     def BiasDoneCallBack(self, Ids):
 
-        for chn, inds in self.DCChannelIndex.iteritems():
+        for chn, inds in self.DCChannelIndex.items():
             self.DevDCVals[chn]['Ids'][self.SwVgsInd,
                                        self.SwVdsInd] = Ids[inds[1]]
 
@@ -1123,11 +1123,11 @@ class Charact(DataProcess):
                 self.ApplyNextBias()
 
     def GateDoneCallBack(self, Igs):
-        for chn, inds in self.GateChannelIndex.iteritems():
+        for chn, inds in self.GateChannelIndex.items():
             self.DevDCVals['Gate']['Ig'][self.SwVgsInd, self.SwVdsInd] = Igs
 
     def BodeDoneCallBack(self, Gm, SigFreqs):
-        for chn, inds in self.ACChannelIndex.iteritems():
+        for chn, inds in self.ACChannelIndex.items():
             self.DevACVals[chn]['gm']['Vd{}'.format(self.SwVdsInd)][
                     self.SwVgsInd] = Gm[:, inds[1]]
             self.DevACVals[chn]['Fgm'] = SigFreqs
@@ -1138,7 +1138,7 @@ class Charact(DataProcess):
         self.ApplyNextBias()
 
     def PSDDoneCallBack(self, psd, ff, data):
-        for chn, inds in self.ACChannelIndex.iteritems():
+        for chn, inds in self.ACChannelIndex.items():
             self.DevACVals[chn]['PSD']['Vd{}'.format(self.SwVdsInd)][
                     self.SwVgsInd] = psd[:, inds[1]]
             self.DevACVals[chn]['Fpsd'] = ff
@@ -1159,7 +1159,7 @@ class Charact(DataProcess):
             self.EventFFTDone(FFT)
 
     def ContDcDoneCallback(self, Ids):
-        for chk, chi, in self.DCChannelIndex.iteritems():
+        for chk, chi, in self.DCChannelIndex.items():
             newvect = Ids[:, chi[1]].transpose()
             self.ContRecord.AppendSignal(chk + '_DC', newvect[:, None])
 
@@ -1174,7 +1174,7 @@ class Charact(DataProcess):
                 self.EventContinuousDone(tstop)
 
     def ContGateDoneCallback(self, Igs):
-        for chk, chi, in self.GateChannelIndex.iteritems():
+        for chk, chi, in self.GateChannelIndex.items():
             newvect = Igs[:, chi[1]].transpose()
             self.ContRecord.AppendSignal(chk + '_Gate', newvect[:, None])
 
@@ -1189,7 +1189,7 @@ class Charact(DataProcess):
                 self.EventContinuousDone(tstop)
 
     def ContAcDoneCallback(self, Ids):
-        for chk, chi, in self.ACChannelIndex.iteritems():
+        for chk, chi, in self.ACChannelIndex.items():
             newvect = Ids[:, chi[1]].transpose()
             self.ContRecord.AppendSignal(chk + '_AC', newvect[:, None])
 
