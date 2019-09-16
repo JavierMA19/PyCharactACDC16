@@ -19,10 +19,13 @@ import matplotlib.pyplot as plt
 import deepdish as dd
 #import ctypes
 
+import PyGFETdb.PlotDataClass as PyFETpl
+import Charact16Core as PyCharact
 
-import PyGFET.PlotDataClass as PyFETpl
-import PyCharactACDC16.Charact16Core as PyCharact
-from PyGFET.RecordPlot import PltSlot, PlotRecord
+#import PyGFET.PlotDataClass as PyFETpl
+#import PyCharactACDC16.Charact16Core as PyCharact
+from PhyREC.PlotWaves import PlotSlots
+#from PyGFET.RecordPlot import PltSlot, PlotRecord
 
 #import PyDAQmx as Daq
 
@@ -76,6 +79,7 @@ class ContinuousAcquisitionPlots():
 
         #  Init Plot figures
         self.PltRecs = PlotRecord()
+
         self.PltRecs.CreateFig(slots, ShowLegend=False)
         plt.show()
 
