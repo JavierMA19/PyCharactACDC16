@@ -158,13 +158,7 @@ class CharacLivePlot():
             self.PlotSwAC.Fig.canvas.draw()
 
     def PlotFFT(self, FFT):
-#        self.FFTFig, self.FFTAxs = plt.subplots()
-#        self.FFTAxs.ticklabel_format(axis='y', style='sci',
-#                                     scilimits=(-2, 2))
-#        plt.show()
-
         self.FFTAxs.plot(np.abs(FFT))
-#        self.FFTAxs.semilogx(FFT, OutFFT)
         self.FFTFig.canvas.draw()
 
     def __del__(self):
@@ -174,10 +168,6 @@ class CharacLivePlot():
 ###############################################################################
 ####
 ###############################################################################
-
-
-#GuiTestDC_ui = "GuiTestDC_v3.ui"  # Enter file here.
-#Ui_GuiTestDC, QtBaseClass = uic.loadUiType(GuiTestDC_ui)
 
 
 class CharactAPP(QtWidgets.QMainWindow):
@@ -320,9 +310,6 @@ class CharactAPP(QtWidgets.QMainWindow):
         self.Charac = PyCharact.Charact(Channels=Channels,
                                         GateChannel=GateChannel,
                                         Configuration=Config)
-#        self.Charac = Charact(Channels=Channels,
-#                              GateChannel=GateChannel,
-#                              Configuration=Config)
 
         # Define events callbacks
         self.Charac.EventCharSweepDone = self.CharSweepDoneCallBack

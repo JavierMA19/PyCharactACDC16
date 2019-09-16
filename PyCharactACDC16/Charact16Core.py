@@ -59,7 +59,7 @@ class ReadAnalog(Daq.Task):
         self.AutoRegisterDoneEvent(0)
 
     def GetDevName(self,):
-        print 'ReadAnalog GetDevName'
+        print('ReadAnalog GetDevName')
         # Get Device Name of Daq Card
         n = 1024
         buff = ctypes.create_string_buffer(n)
@@ -77,7 +77,7 @@ class ReadAnalog(Daq.Task):
             Dev = dev + '/{}'
 
         if Dev is None:
-            print 'ERRROORR dev not found ', value
+            print('ERRROORR dev not found ', value)
 
         return Dev
 
@@ -158,7 +158,7 @@ class WriteAnalog(Daq.Task):
         self.StopTask()
 
     def GetDevName(self,):
-        print 'ReadAnalog GetDevName'
+        print('ReadAnalog GetDevName')
         # Get Device Name of Daq Card
         n = 1024
         buff = ctypes.create_string_buffer(n)
@@ -176,7 +176,7 @@ class WriteAnalog(Daq.Task):
             Dev = dev + '/{}'
 
         if Dev is None:
-            print 'ERRROORR dev not found ', value
+            print('ERRROORR dev not found ', value)
 
         return Dev
 
@@ -186,7 +186,7 @@ class WriteAnalog(Daq.Task):
         self.StopTask()
 
     def SetSignal(self, Signal, nSamps):
-        print 'WriteSetSignal'
+        print('WriteSetSignal')
         read = c_int32()
 
         self.CfgSampClkTiming('ai/SampleClock', 1, Daq.DAQmx_Val_Rising,
@@ -198,7 +198,7 @@ class WriteAnalog(Daq.Task):
         self.StartTask()
 
     def SetContSignal(self, Signal, nSamps):
-        print 'WriteSetSignal'
+        print('WriteSetSignal')
         read = c_int32()
 
         self.CfgSampClkTiming('ai/SampleClock', 1, Daq.DAQmx_Val_Rising,
@@ -283,20 +283,24 @@ class ChannelsConfig():
         else:
             self.GateChannelIndex = None
 
-        print 'Channels configurtation'
-        print 'Gate', self.GateChannelIndex
-        print 'Channels ', len(self.ChNamesList)
-        print 'ai list ->', InChans
+        print('Channels configurtation')
+        print('Gate', self.GateChannelIndex)
+        print('Channels ', len(self.ChNamesList))
+        print('ai list ->', InChans)
         for ch in sorted(Channels):
             if Configuration == 'DC':
-                print ch, ' DC -> ', self.aiChannels[ch][0], self.DCChannelIndex[ch]
+                print(ch, ' DC -> ', self.aiChannels[ch][0],
+                      self.DCChannelIndex[ch])
                 self.ACChannelIndex = self.DCChannelIndex
             elif Configuration == 'AC':
-                print ch, ' AC -> ', self.aiChannels[ch][1], self.ACChannelIndex[ch]
+                print(ch, ' AC -> ', self.aiChannels[ch][1],
+                      self.ACChannelIndex[ch])
                 self.DCChannelIndex = self.ACChannelIndex
             else:
-                print ch, ' DC -> ', self.aiChannels[ch][0], self.DCChannelIndex[ch]
-                print ch, ' AC -> ', self.aiChannels[ch][1], self.ACChannelIndex[ch]
+                print(ch, ' DC -> ', self.aiChannels[ch][0],
+                      self.DCChannelIndex[ch])
+                print(ch, ' AC -> ', self.aiChannels[ch][1],
+                      self.ACChannelIndex[ch])
 
         self.Inputs = ReadAnalog(InChans=InChans)
         # events linking
@@ -322,7 +326,7 @@ class ChannelsConfig():
         self.Vsig = WriteAnalog((ChVsig,))
 
     def SetBias(self, Vds, Vgs):
-        print 'ChannelsConfig SetBias Vgs ->', Vgs, 'Vds ->', Vds
+        print('ChannelsConfig SetBias Vgs ->', Vgs, 'Vds ->', Vds)
         self.VdsOut.SetVal(Vds)
         self.VsOut.SetVal(-Vgs)
         self.BiasVd = Vds-Vgs
@@ -330,7 +334,7 @@ class ChannelsConfig():
         self.Vds = Vds
 
     def SetSignal(self, Signal, nSamps):
-        print 'SetSignal'
+        print('SetSignal')
         if not self.VgOut:
             self.VgOut = WriteAnalog(('ao2',))
         self.VgOut.DisableStartTrig()
@@ -338,7 +342,7 @@ class ChannelsConfig():
                              nSamps=nSamps)
 
     def SetContSignal(self, Signal, nSamps):
-        print 'SetContSignal'
+        print('SetContSignal')
         if not self.VgOut:
             self.VgOut = WriteAnalog(('ao2',))
         self.VgOut.DisableStartTrig()
@@ -391,7 +395,7 @@ class ChannelsConfig():
                              EverySamps=EverySamps)
 
     def __del__(self):
-        print 'Delete class'
+        print('Delete class')
         if self.VgOut:
             self.VgOut.ClearTask()
         self.VdsOut.ClearTask()
@@ -711,7 +715,7 @@ class DataProcess(ChannelsConfig, FFTBodeAnalysis):
         x = np.arange(0, r)
         mm, oo = np.polyfit(x, data, 1)
         Dev = np.abs(np.mean(mm))
-        print 'DataProcess Attempt ', Dev
+        print('DataProcess Attempt ', Dev)
         if self.EventBiasAttempt:
             Ids = (data-self.BiasVd)/self.IVGainDC
             if not self.EventBiasAttempt(Ids,
@@ -804,7 +808,7 @@ class DataProcess(ChannelsConfig, FFTBodeAnalysis):
             if self.SeqIndex <= len(self.InitConfig['Channels']) - 1:
                 Channel = [sorted(self.InitConfig['Channels'])[self.SeqIndex], 
                            ]
-                print 'Channel -->', Channel
+                print('Channel -->', Channel)
                 SeqConf['Channels'] = Channel
                 self.SeqIndex += 1
 
@@ -887,7 +891,7 @@ class DataProcess(ChannelsConfig, FFTBodeAnalysis):
         self.ACDataEveryNEvent = self.EventDataAcq
         if not self.PSDDuration:
             self.PSDDuration = self.PSDnFFT*self.PSDnAvg*(1/self.PSDFs)
-        print 'DataProcess Acquire PSD data for ', self.PSDDuration, 'seconds'
+        print('DataProcess Acquire PSD data for ', self.PSDDuration, 'seconds')
         self.ACDataDoneEvent = self.CalcPSDData
         self.ReadChannelsData(Fs=self.PSDFs,
                               nSamps=self.PSDnFFT*self.PSDnAvg,
@@ -1198,7 +1202,7 @@ class Charact(DataProcess):
             self.EventContinuousDone(tstop)
 
     def StopCharac(self):
-        print 'STOP'
+        print('STOP')
         self.CharactRunning = False
 #        self.Inputs.ClearTask()
         if self.ContRecord:
