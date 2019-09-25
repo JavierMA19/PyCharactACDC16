@@ -13,26 +13,13 @@ from qtpy.QtWidgets import (QHeaderView, QCheckBox, QSpinBox, QLineEdit,
                             QInputDialog)
 
 from qtpy import QtWidgets, uic
-#from qtpy.QtCore import Qt, QItemSelectionModel, QSettings
 
 import matplotlib.pyplot as plt
 import deepdish as dd
-#import ctypes
 
 import PyGFETdb.PlotDataClass as PyFETpl
 import Charact16Core as PyCharact
 
-#import PyGFET.PlotDataClass as PyFETpl
-#import PyCharactACDC16.Charact16Core as PyCharact
-from PhyREC.PlotWaves import PlotSlots
-#from PyGFET.RecordPlot import PltSlot, PlotRecord
-
-#import PyDAQmx as Daq
-
-#from ctypes import byref, c_int32
-import numpy as np
-#from scipy import signal
-#import neo
 import pickle
 import quantities as pq
 import inspect
