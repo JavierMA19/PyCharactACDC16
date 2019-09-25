@@ -40,59 +40,6 @@ import matplotlib.cm as cmx
 import matplotlib.colors as mpcolors
 
 
-class ContinuousAcquisitionPlots():
-
-    def __init__(self, Rec):
-        slots = []
-        cmap = cmx.ScalarMappable(mpcolors.Normalize(vmin=0, vmax=len(Rec.SigNames.keys())),
-                                  cmx.jet)
-
-        for ind, sign in enumerate(sorted(Rec.SigNames.keys())):
-            sl = PltSlot()
-            sl.rec = Rec
-
-            if sign.endswith('_DC'):
-                sl.Position = 0
-                sl.Color = cmap.to_rgba(ind)
-                sl.DispName = sign
-
-            if sign.endswith('_AC'):
-                sl.Position = 1
-                sl.Color = cmap.to_rgba(ind)
-                sl.DispName = sign
-
-            if sign.endswith('_Gate'):
-                sl.Position = 2
-                sl.DispName = sign
-
-            if not sign.startswith('V'):
-                sl.SigName = sign
-                sl.OutType = 'V'
-                slots.append(sl)
-
-#            sl.Position = ind
-
-#            if sign.endswith('_DC'):
-#                sl.FiltType = ('lp', )
-#                sl.FiltOrder = (2, )
-#                sl.FiltF1 = (1, )
-
-        #  Init Plot figures
-        self.PltRecs = PlotRecord()
-
-        self.PltRecs.CreateFig(slots, ShowLegend=False)
-        plt.show()
-
-    def PlotUpdate(self, Time):
-        self.PltRecs.ClearAxes()
-        self.PltRecs.PlotChannels(Time, Resamp=False)
-        self.PltRecs
-        self.PltRecs.Fig.canvas.draw()
-
-    def __del__(self):
-        plt.close('all')
-
-
 class CharacLivePlot():
 
     DCPlotVars = ('Ids', 'Rds', 'Gm', 'Ig')
@@ -221,22 +168,12 @@ class CharactAPP(QtWidgets.QMainWindow):
         self.ButSweep.clicked.connect(self.ButSweepClick)
         self.ButInitChannels.clicked.connect(self.ButInitChannelsClick)
         self.ButUnselAll.clicked.connect(self.ButUnselAllClick)
-        self.ButCont.clicked.connect(self.ButContClick)
-        self.ButSaveCont.clicked.connect(self.SaveContData)
 
         # Combo Box
         self.CmbDevCond.currentIndexChanged.connect(self.DevCondChanged)
 
         # Check Box
         self.ChckSaveData.stateChanged.connect(self.ChckSaveDataChanged)
-
-        # Slider
-        self.SLTstart.valueChanged.connect(self.SLTStartChanged)
-        self.SLTstop.valueChanged.connect(self.SLTStopChanged)
-
-        # Spin Box
-        self.SpnSVgsTP.valueChanged.connect(self.VgsTimePlotChanged)
-        self.SpnSVdsTP.valueChanged.connect(self.VdsTimePlotChanged)
 
         # Signals Bode
         self.SpnFreqMin.valueChanged.connect(self.CheckBodeConfig)
@@ -272,14 +209,6 @@ class CharactAPP(QtWidgets.QMainWindow):
                                    self.ChckOutBode,
                                    self.SpnNAvg]
 
-        self.ContEnableObjects = [self.SpnTestFreq,
-                                  self.SpnTestAmp,
-                                  self.SpnRefresh,
-                                  self.SpnFsTime]
-
-        self.ConfigTP = [self.chckTpDC,
-                         self.chckTpAC]
-
 # Init Channels
 ###############################################################################
     def ButUnselAllClick(self):
@@ -310,7 +239,6 @@ class CharactAPP(QtWidgets.QMainWindow):
             self.Charac.__del__()
 
         Config = self.GetConfig(self.GrConfig)
-        self.TimePlotConfig(Config)
         self.Charac = PyCharact.Charact(Channels=Channels,
                                         GateChannel=GateChannel,
                                         Configuration=Config)
@@ -321,8 +249,6 @@ class CharactAPP(QtWidgets.QMainWindow):
         self.Charac.EventCharBiasAttempt = self.CharBiasAttemptCallBack
         self.Charac.EventCharACDone = self.CharACDoneCallBack
         self.Charac.EventCharAcDataAcq = self.CharAcDataAcq
-
-        self.Charac.EventContinuousDone = self.CharContDataCallback
         self.Charac.EventSetLabel = self.LabelsChanged
         self.Charac.EventSetBodeLabel = self.LabelsBodeChanged
 
@@ -492,105 +418,6 @@ class CharactAPP(QtWidgets.QMainWindow):
                 self.StopSweep()
                 self.Charac.StopCharac()
 
-# Continuous Acquisition
-###############################################################################
-    def ButContClick(self):  # Evento button TimeCont
-        if self.Charac is None:
-            print('Init Channels first')
-            return
-
-        if self.Charac.CharactRunning:
-            self.Charac.StopCharac()
-            self.ButCont.setText('Start')
-            self.SetEnableObjects(val=True, Objects=self.ContEnableObjects)
-            self.SaveContData()
-            self.Charac.ContRecord = None
-
-        else:
-            self.SetEnableObjects(val=False,
-                                  Objects=self.ContEnableObjects)
-            self.ButCont.setText('Stop')
-            if self.PlotCont:
-                del self.PlotCont
-            if not self.chckTpAC.isChecked() and not self.chckTpDC.isChecked():
-                QMessageBox.question(self, 'Message',
-                                     "Warning: Select One Acquisition type!",
-                                     QMessageBox.Ok)
-                self.ButCont.setText('Start')
-                return
-            if self.chckTestSig.isChecked():
-                self.SetTestSignalConfig()
-            self.Charac.InitContMeas(Vds=self.SpnSVdsTP.value(),
-                                     Vgs=self.SpnSVgsTP.value(),
-                                     Fs=self.SpnFsTime.value(),
-                                     Refresh=self.SpnRefresh.value(),
-                                     RecDC=self.chckTpDC.isChecked(),
-                                     RecAC=self.chckTpAC.isChecked(),
-                                     RecGate=self.GateCh,
-                                     GenTestSig=self.chckTestSig.isChecked())
-            self.PlotCont = ContinuousAcquisitionPlots(self.Charac.ContRecord)
-
-            if self.Charac.CharactRunning:
-                self.ButCont.setText('Stop')
-            else:
-                print('ERROR')
-
-    def TimePlotConfig(self, Config):
-        if Config == 'DC':
-            self.chckTpDC.setChecked(True)
-            self.chckTpAC.setChecked(False)
-        elif Config == 'AC':
-            self.chckTpDC.setChecked(False)
-            self.chckTpAC.setChecked(True)
-        else:
-            self.chckTpDC.setChecked(True)
-            self.chckTpAC.setChecked(True)
-
-        self.SetEnableObjects(val=False, Objects=self.ConfigTP)
-
-    def SetTestSignalConfig(self):
-        print('SetTestSignalConfig')
-        self.Charac.SetContSig(Freq=self.SpnTestFreq.value(),
-                               Arms=self.SpnTestAmp.value(),
-                               Fs=self.SpnFsTime.value())
-
-    def VgsTimePlotChanged(self):
-        if self.Charac.CharactRunning:
-            self.Charac.SetBias(Vds=self.SpnSVdsTP.value(),
-                                Vgs=self.SpnSVgsTP.value())
-
-    def VdsTimePlotChanged(self):
-        if self.Charac.CharactRunning:
-            self.Charac.SetBias(Vds=self.SpnSVdsTP.value(),
-                                Vgs=self.SpnSVgsTP.value())
-
-    def SLTStartChanged(self):
-        if self.SLTstop.value() <= self.SLTstart.value():
-            self.SLTstop.setValue(self.SLTstart.value()+self.SpnWindow.value())
-        self.SLTStopChanged()
-
-    def SLTStopChanged(self):
-        if self.SLTstop.value() <= self.SLTstart.value():
-            if self.SLTstop.value() == 0:
-                self.SLTstop.setValue(1)
-                self.SLTstart.setValue(self.SLTstop.value()-1)
-            self.SLTstart.setValue(self.SLTstop.value()-1)
-        time = (self.SLTstart.value()*pq.s, self.SLTstop.value()*pq.s)
-
-        if self.ChckPauseCont.isChecked():
-            if self.chckTpAC.isChecked():
-                Name = self.Charac.ChNamesList[0] + '_AC'
-            else:
-                Name = self.Charac.ChNamesList[0] + '_DC'
-            tstop = self.Charac.ContRecord.Signal(ChName=Name).t_stop
-            self.SLTstart.setMaximum(tstop)
-            self.SLTstop.setMaximum(tstop)
-            self.LblTstartMax.setText(str(tstop))
-            self.LblStopMax.setText(str(tstop))
-
-            self.PlotCont.PltRecs.ClearAxes()
-            time = (self.SLTstart.value()*pq.s, self.SLTstop.value()*pq.s)
-            self.PlotCont.PlotUpdate(Time=time)
 
 # Events Done
 ###############################################################################
@@ -626,12 +453,6 @@ class CharactAPP(QtWidgets.QMainWindow):
         if not self.Charac.CharactRunning:
             self.StopSweep()
 
-    def CharContDataCallback(self, tstop):
-        if not self.ChckPauseCont.isChecked():
-            time = (tstop - self.SpnWindow.value()*pq.s, tstop)
-            if self.PlotCont:
-                self.PlotCont.PlotUpdate(Time=time)
-
 # Stop Events
 ###############################################################################
     def StopSweep(self):
@@ -643,13 +464,6 @@ class CharactAPP(QtWidgets.QMainWindow):
 
 # Save Data Events
 ###############################################################################
-    def SaveContData(self):
-        name, _ = QFileDialog.getSaveFileName(self, 'Save File')
-        if not name:
-            return
-        else:
-            self.Charac.ContRecord.SaveRecord(name + '.h5')
-
     def ChckSaveDataChanged(self):
         if self.ChckSaveData.isChecked():
             self.FileName, _ = QFileDialog.getSaveFileName(self, 'Save File')
@@ -732,7 +546,7 @@ def main():
     import pkg_resources
 
     # Add version option
-    __version__ = pkg_resources.require("PyGFET")[0].version
+    __version__ = pkg_resources.require("PyGFETdb")[0].version
     parser = argparse.ArgumentParser()
     parser.add_argument('--version', action='version',
                         version='%(prog)s {version}'.format(

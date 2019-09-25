@@ -549,7 +549,7 @@ class FFTTestSignal():
         FFTconf = self.FFTconfs[Ind]
 
         a = Data.reshape((self.nAvg, FFTconf.nFFT))
-        acc = np.zeros(((FFTconf.nFFT/2)+1))
+        acc = np.zeros(((FFTconf.nFFT//2)+1))
         for w in a:
             acc = acc + (2 * np.fft.rfft(w, FFTconf.nFFT) / FFTconf.nFFT)
 
