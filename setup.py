@@ -39,7 +39,8 @@ install_requires = ['numpy',
                     'neo==0.6.1',
                     'nixio',
                     'deepdish',
-                    'pygfet',
+                    'pygfetdb',
+                    'pyqttools==0.0.3.1',
                     ]
 
 console_scripts = ['GFETCharactGui16 = PyCharactACDC16.GuiCharact16:main',
