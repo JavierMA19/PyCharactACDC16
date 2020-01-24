@@ -1,239 +1,40 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Sep 28 16:03:58 2017
+Created on Tue Mar  5 14:13:45 2019
 
-@author: user
+@author: aguimera
 """
-import sys
-import ctypes
-import PyGFETdb.DataStructures as PyData
-import PyDAQmx as Daq
-from ctypes import byref, c_int32
+import PyqtTools.DaqInterface as DaqInt
 import numpy as np
+import PyGFETdb.DataStructures as PyData
 from scipy import signal
-import neo
-import quantities as pq
 
 
-"""This example is a PyDAQmx version of the ContAcq_IntClk.c example
-It illustrates the use of callback functions
+# Daq card connections mapping 'Chname':(DCout, ACout)
+aiChannels = {'Ch01': ('ai0', 'ai8'),
+              'Ch02': ('ai1', 'ai9'),
+              'Ch03': ('ai2', 'ai10'),
+              'Ch04': ('ai3', 'ai11'),
+              'Ch05': ('ai4', 'ai12'),
+              'Ch06': ('ai5', 'ai13'),
+              'Ch07': ('ai6', 'ai14'),
+              'Ch08': ('ai7', 'ai15'),
+              'Ch09': ('ai16', 'ai24'),
+              'Ch10': ('ai17', 'ai25'),
+              'Ch11': ('ai18', 'ai26'),
+              'Ch12': ('ai19', 'ai27'),
+              'Ch13': ('ai20', 'ai28'),
+              'Ch14': ('ai21', 'ai29'),
+              'Ch15': ('ai22', 'ai30'),
+              'Ch16': ('ai23', 'ai31'),
+              }
 
-This example demonstrates how to acquire a continuous amount of
-data using the DAQ device's internal clock. It incrementally stores the data
-in a Python list.
-"""
-
-###############################################################################
-######
-###############################################################################
-
-
-class ReadAnalog(Daq.Task):
-
-    '''
-    Class to read data from Daq card
-
-    TODO - Implement the callback option to read data
-    '''
-
-#    Events list
-    EveryNEvent = None
-    DoneEvent = None
-
-    ContSamps = False
-    EverySamps = 1000
-
-    def __init__(self, InChans, Range=5.0):
-
-        Daq.Task.__init__(self)
-        self.Channels = InChans
-
-        Dev = self.GetDevName()
-        for Ch in self.Channels:
-            self.CreateAIVoltageChan(Dev.format(Ch), "",
-                                     Daq.DAQmx_Val_RSE,
-                                     -Range, Range,
-                                     Daq.DAQmx_Val_Volts, None)
-
-        self.AutoRegisterDoneEvent(0)
-
-    def GetDevName(self,):
-        print('ReadAnalog GetDevName')
-        # Get Device Name of Daq Card
-        n = 1024
-        buff = ctypes.create_string_buffer(n)
-        Daq.DAQmxGetSysDevNames(buff, n)
-        if sys.version_info >= (3,):
-            value = buff.value.decode()
-        else:
-            value = buff.value
-
-        Dev = None
-        value = value.replace(' ', '')
-        for dev in value.split(','):
-            if dev.startswith('Sim'):
-                continue
-            Dev = dev + '/{}'
-
-        if Dev is None:
-            print('ERRROORR dev not found ', value)
-
-        return Dev
-
-    def ReadData(self, Fs=1000, nSamps=10000, EverySamps=1000):
-
-        self.Fs = Fs
-        self.EverySamps = EverySamps
-
-        self.data = np.ndarray([len(self.Channels), ])
-
-        self.CfgSampClkTiming("", Fs, Daq.DAQmx_Val_Rising,
-                              Daq.DAQmx_Val_FiniteSamps, nSamps)
-
-        self.AutoRegisterEveryNSamplesEvent(Daq.DAQmx_Val_Acquired_Into_Buffer,
-                                            self.EverySamps, 0)
-        self.StartTask()
-
-    def ReadContData(self, Fs=1000, EverySamps=1000):
-
-        self.Fs = Fs
-        self.EverySamps = np.int32(EverySamps)
-        self.ContSamps = True  # TODO check it
-
-        self.CfgSampClkTiming("", Fs, Daq.DAQmx_Val_Rising,
-                              Daq.DAQmx_Val_ContSamps, self.EverySamps*100)
-
-        self.AutoRegisterEveryNSamplesEvent(Daq.DAQmx_Val_Acquired_Into_Buffer,
-                                            self.EverySamps, 0)
-
-        self.StartTask()
-
-    def StopContData(self):
-        self.StopTask()
-        self.ContSamps = False
-
-    def EveryNCallback(self):
-        read = c_int32()
-        data = np.zeros((self.EverySamps, len(self.Channels)))
-        self.ReadAnalogF64(self.EverySamps, 10.0,
-                           Daq.DAQmx_Val_GroupByScanNumber,
-                           data, data.size, byref(read), None)
-
-        if not self.ContSamps:  # TODO check why stack here
-            self.data = np.vstack((self.data, data))
-
-#        print data.size, self.data.shape
-
-        if self.EveryNEvent:
-            self.EveryNEvent(data)
-
-    def DoneCallback(self, status):
-        self.StopTask()
-        self.UnregisterEveryNSamplesEvent()
-
-        if self.DoneEvent:
-            self.DoneEvent(self.data[1:, :])  # TODO check why 1:
-
-        return 0  # The function should return an integer
-
-###############################################################################
-#####
-###############################################################################
-
-
-class WriteAnalog(Daq.Task):
-
-    '''
-    Class to write data to Daq card
-    '''
-    def __init__(self, Channels):
-
-        Daq.Task.__init__(self)
-        Dev = self.GetDevName()
-        for Ch in Channels:
-            self.CreateAOVoltageChan(Dev.format(Ch), "",
-                                     -5.0, 5.0, Daq.DAQmx_Val_Volts, None)
-        self.DisableStartTrig()
-        self.StopTask()
-
-    def GetDevName(self,):
-        print('ReadAnalog GetDevName')
-        # Get Device Name of Daq Card
-        n = 1024
-        buff = ctypes.create_string_buffer(n)
-        Daq.DAQmxGetSysDevNames(buff, n)
-        if sys.version_info >= (3,):
-            value = buff.value.decode()
-        else:
-            value = buff.value
-
-        Dev = None
-        value = value.replace(' ', '')
-        for dev in value.split(','):
-            if dev.startswith('Sim'):
-                continue
-            Dev = dev + '/{}'
-
-        if Dev is None:
-            print('ERRROORR dev not found ', value)
-
-        return Dev
-
-    def SetVal(self, value):
-        self.StartTask()
-        self.WriteAnalogScalarF64(1, -1, value, None)        
-        self.StopTask()
-
-    def SetSignal(self, Signal, nSamps):
-        print('WriteSetSignal')
-        read = c_int32()
-
-        self.CfgSampClkTiming('ai/SampleClock', 1, Daq.DAQmx_Val_Rising,
-                              Daq.DAQmx_Val_FiniteSamps, nSamps)
-
-        self.CfgDigEdgeStartTrig('ai/StartTrigger', Daq.DAQmx_Val_Rising)
-        self.WriteAnalogF64(nSamps, False, -1, Daq.DAQmx_Val_GroupByChannel,
-                            Signal, byref(read), None)
-        self.StartTask()
-
-    def SetContSignal(self, Signal, nSamps):
-        print('WriteSetSignal')
-        read = c_int32()
-
-        self.CfgSampClkTiming('ai/SampleClock', 1, Daq.DAQmx_Val_Rising,
-                              Daq.DAQmx_Val_ContSamps, nSamps)
-
-        self.CfgDigEdgeStartTrig('ai/StartTrigger', Daq.DAQmx_Val_Rising)
-        self.WriteAnalogF64(nSamps, False, -1, Daq.DAQmx_Val_GroupByChannel,
-                            Signal, byref(read), None)
-        self.StartTask()
-
-###############################################################################
-#####
-###############################################################################
+##############################################################################
 
 
 class ChannelsConfig():
 
-    # Daq card connections mapping 'Chname' : (DCout, ACout)
-    aiChannels = {'Ch01': ('ai0', 'ai8'),
-                  'Ch02': ('ai1', 'ai9'),
-                  'Ch03': ('ai2', 'ai10'),
-                  'Ch04': ('ai3', 'ai11'),
-                  'Ch05': ('ai4', 'ai12'),
-                  'Ch06': ('ai5', 'ai13'),
-                  'Ch07': ('ai6', 'ai14'),
-                  'Ch08': ('ai7', 'ai15'),
-                  'Ch09': ('ai16', 'ai24'),
-                  'Ch10': ('ai17', 'ai25'),
-                  'Ch11': ('ai18', 'ai26'),
-                  'Ch12': ('ai19', 'ai27'),
-                  'Ch13': ('ai20', 'ai28'),
-                  'Ch14': ('ai21', 'ai29'),
-                  'Ch15': ('ai22', 'ai30'),
-                  'Ch16': ('ai23', 'ai31')}
-
-# ChannelIndex = {'Ch01': (0-31, 0-15)}-->> {Chname: (input index, sort index)}
     DCChannelIndex = None
     ACChannelIndex = None
     GateChannelIndex = None
@@ -259,6 +60,9 @@ class ChannelsConfig():
             self.DelInputs()
 
         InChans = []
+        print(Channels, 'Channels')
+        print(GateChannel, 'GateChannel')
+        print(Configuration, 'Configuration')
 
         self.ChNamesList = sorted(Channels)
         self.DCChannelIndex = {}
@@ -267,18 +71,18 @@ class ChannelsConfig():
         sortindex = 0
         for ch in sorted(Channels):
             if Configuration in ('DC', 'Both'):
-                InChans.append(self.aiChannels[ch][0])
+                InChans.append(aiChannels[ch][0])
                 self.DCChannelIndex[ch] = (index, sortindex)
                 index += 1
             if Configuration in ('AC', 'Both'):
-                InChans.append(self.aiChannels[ch][1])
+                InChans.append(aiChannels[ch][1])
                 self.ACChannelIndex[ch] = (index, sortindex)
                 index += 1
             sortindex += 1
 
         if GateChannel:
             self.GateChannelIndex = {GateChannel: (index, 0)}
-            InChans.append(self.aiChannels[GateChannel][0])
+            InChans.append(aiChannels[GateChannel][0])
         else:
             self.GateChannelIndex = None
 
@@ -288,20 +92,20 @@ class ChannelsConfig():
         print('ai list ->', InChans)
         for ch in sorted(Channels):
             if Configuration == 'DC':
-                print(ch, ' DC -> ', self.aiChannels[ch][0],
+                print(ch, ' DC -> ', aiChannels[ch][0],
                       self.DCChannelIndex[ch])
                 self.ACChannelIndex = self.DCChannelIndex
             elif Configuration == 'AC':
-                print(ch, ' AC -> ', self.aiChannels[ch][1],
+                print(ch, ' AC -> ', aiChannels[ch][1],
                       self.ACChannelIndex[ch])
                 self.DCChannelIndex = self.ACChannelIndex
             else:
-                print(ch, ' DC -> ', self.aiChannels[ch][0],
+                print(ch, ' DC -> ', aiChannels[ch][0],
                       self.DCChannelIndex[ch])
-                print(ch, ' AC -> ', self.aiChannels[ch][1],
+                print(ch, ' AC -> ', aiChannels[ch][1],
                       self.ACChannelIndex[ch])
 
-        self.Inputs = ReadAnalog(InChans=InChans)
+        self.Inputs = DaqInt.ReadAnalog(InChans=InChans)
         # events linking
         self.Inputs.EveryNEvent = self.EveryNEventCallBack
         self.Inputs.DoneEvent = self.DoneEventCallBack
@@ -318,11 +122,15 @@ class ChannelsConfig():
                         GateChannel=GateChannel,
                         Configuration=Configuration)
 
+#        self.IVGainDC = IVGainDC
+#        self.IVGainAC = IVGainAC
+#        self.IVGainGate = IVGainGate
+
         # Output Channels
-        self.VsOut = WriteAnalog((ChVs,))
-        self.VdsOut = WriteAnalog((ChVds,))
-        self.VgOut = WriteAnalog((ChVg,))
-        self.Vsig = WriteAnalog((ChVsig,))
+        self.VsOut = DaqInt.WriteAnalog((ChVs,))
+        self.VdsOut = DaqInt.WriteAnalog((ChVds,))
+        self.VgOut = DaqInt.WriteAnalog((ChVg,))
+        self.Vsig = DaqInt.WriteAnalog((ChVsig,))
 
     def SetBias(self, Vds, Vgs):
         print('ChannelsConfig SetBias Vgs ->', Vgs, 'Vds ->', Vds)
@@ -333,17 +141,15 @@ class ChannelsConfig():
         self.Vds = Vds
 
     def SetSignal(self, Signal, nSamps):
-        print('SetSignal')
         if not self.VgOut:
-            self.VgOut = WriteAnalog(('ao2',))
+            self.VgOut = DaqInt.WriteAnalog(('ao2',))
         self.VgOut.DisableStartTrig()
         self.VgOut.SetSignal(Signal=Signal,
                              nSamps=nSamps)
 
     def SetContSignal(self, Signal, nSamps):
-        print('SetContSignal')
         if not self.VgOut:
-            self.VgOut = WriteAnalog(('ao2',))
+            self.VgOut = DaqInt.WriteAnalog(('ao2',))
         self.VgOut.DisableStartTrig()
         self.VgOut.SetContSignal(Signal=Signal,
                                  nSamps=nSamps)
@@ -400,10 +206,6 @@ class ChannelsConfig():
         self.VdsOut.ClearTask()
         self.VsOut.ClearTask()
         self.Inputs.ClearTask()
-#        del(self.VgOut)
-#        del(self.VdsOut)
-#        del(self.VsOut)
-#        del(self.Inputs)
 
 ###############################################################################
 #####
@@ -546,7 +348,7 @@ class FFTTestSignal():
         FFTconf = self.FFTconfs[Ind]
 
         a = Data.reshape((self.nAvg, FFTconf.nFFT))
-        acc = np.zeros(((FFTconf.nFFT//2)+1))
+        acc = np.zeros(((FFTconf.nFFT)//2)+1)
         for w in a:
             acc = acc + (2 * np.fft.rfft(w, FFTconf.nFFT) / FFTconf.nFFT)
 
@@ -556,6 +358,7 @@ class FFTTestSignal():
             self.EventFFTDebug(acc/self.nAvg)
 
         return Out
+
 
 ###############################################################################
 #####
@@ -640,7 +443,6 @@ class DataProcess(ChannelsConfig, FFTBodeAnalysis):
     DevCondition = 5e-8
     PSDDuration = None
     GenTestSig = None
-    ContSignal = None
     OldConfig = None
     GmH = None
     Gm = None
@@ -653,9 +455,6 @@ class DataProcess(ChannelsConfig, FFTBodeAnalysis):
     EventBodeDone = None
     EventPSDDone = None
     EventAcDataAcq = None
-    EventContAcDone = None
-    EventContDcDone = None
-    EventContGateDone = None
     EventSetBodeLabel = None
 
     def ClearEventsCallBacks(self):
@@ -678,37 +477,8 @@ class DataProcess(ChannelsConfig, FFTBodeAnalysis):
                               nSamps=self.DCnSamps,
                               EverySamps=self.DCnSamps)
 
-    def GetContinuousCurrent(self, Fs, Refresh, GenTestSig):
-        self.ClearEventsCallBacks()
-        self.DCDataEveryNEvent = self.CalcDcContData
-        self.ACDataEveryNEvent = self.CalcAcContData
-        if self.GateChannelIndex is not None:
-            self.GateDataEveryNEvent = self.CalcGateContData
-        if GenTestSig:
-            self.GenTestSig = GenTestSig
-            self.SetContSignal(Signal=self.ContSignal,
-                               nSamps=self.ContSignal.size)
-        self.Inputs.ReadContData(Fs=Fs,
-                                 EverySamps=Fs*Refresh)
-
-    def SetContSig(self, Freq=0.1, Arms=10e-3, Fs=1000):
-
-        nFFT = int(2**((np.around(np.log2(Fs/Freq))+1)+2))
-        Ts = 1./Fs
-        Ps = nFFT * Ts
-        t = np.arange(0, Ps, Ts)
-
-        Sig = Arms*np.sin(Freq*2*np.pi*(t))
-        time = 1./Freq
-        Index,  = np.where(abs(t-time) == np.min(abs(t-time)))[0]
-        Signal = Sig[:Index]
-
-        self.ContSignal = Signal
-        self.ContTime = t
-
     def CalcBiasData(self, Data):
         #  data = Data[1:, :]
-
         data = Data
         r, c = data.shape
         x = np.arange(0, r)
@@ -749,28 +519,6 @@ class DataProcess(ChannelsConfig, FFTBodeAnalysis):
             self.EventGateDone(Igs)
         return
 
-    # Continuous acquisition
-    ####
-    def CalcDcContData(self, Data):
-        Ids = (Data-self.BiasVd)/self.IVGainDC
-        if self.EventContDcDone:
-            self.EventContDcDone(Ids)
-
-    def CalcAcContData(self, Data):
-        Ids = (Data-self.BiasVd)/self.IVGainAC
-        if self.EventContAcDone:
-            self.EventContAcDone(Ids)
-
-    def CalcGateContData(self, Data):
-        Igs = (Data-5e-3)/self.IVGainGate
-#        data = Data[1:, :]
-#        r, c = data.shape
-#        x = np.arange(0, r)
-#        mm, oo = np.polyfit(x, data, 1)
-#        Igs = oo/self.IVGainGate
-        if self.EventContGateDone:
-            self.EventContGateDone(Igs)
-
     # AC
     ####
     def GetSeqBode(self, SeqConf):
@@ -805,7 +553,7 @@ class DataProcess(ChannelsConfig, FFTBodeAnalysis):
         if FFTconf.AcqSequential is True:
 
             if self.SeqIndex <= len(self.InitConfig['Channels']) - 1:
-                Channel = [sorted(self.InitConfig['Channels'])[self.SeqIndex], 
+                Channel = [sorted(self.InitConfig['Channels'])[self.SeqIndex],
                            ]
                 print('Channel -->', Channel)
                 SeqConf['Channels'] = Channel
@@ -941,9 +689,6 @@ class Charact(DataProcess):
     EventCharAcDataAcq = None
     EventFFTDone = None
 
-    # Neo Record
-    ContRecord = None
-
     def InitSweep(self, VdsVals, VgsVals, PSD=False, Bode=False):
         self.SwVgsVals = VgsVals
         self.SwVdsVals = VdsVals
@@ -1022,75 +767,6 @@ class Charact(DataProcess):
         self.GetBiasCurrent(Vds=self.SwVdsVals[self.SwVdsInd],
                             Vgs=self.SwVgsVals[self.SwVgsInd])
 
-        if self.EventSetLabel:
-            self.EventSetLabel(self.SwVdsVals[self.SwVdsInd],
-                               self.SwVgsVals[self.SwVgsInd])
-
-    def InitContMeas(self, Vds, Vgs, Fs, Refresh,
-                     RecDC=True, RecAC=True, RecGate=False, GenTestSig=False):
-        #  Init Neo record
-        out_seg = neo.Segment(name='NewSeg')
-
-        if RecAC:
-
-            self.EventContAcDone = self.ContAcDoneCallback
-            for chk, chi, in sorted(self.ACChannelIndex.items()):
-                name = chk + '_AC'
-                sig = neo.AnalogSignal(signal=np.empty((0, 1), float),
-                                       units=pq.V,
-                                       t_start=0*pq.s,
-                                       sampling_rate=Fs*pq.Hz,
-                                       name=name)
-                out_seg.analogsignals.append(sig)
-
-        if RecDC:
-
-            self.EventContDcDone = self.ContDcDoneCallback
-            for chk, chi, in sorted(self.DCChannelIndex.items()):
-                name = chk + '_DC'
-                sig = neo.AnalogSignal(signal=np.empty((0, 1), float),
-                                       units=pq.V,
-                                       t_start=0*pq.s,
-                                       sampling_rate=Fs*pq.Hz,
-                                       name=name)
-                out_seg.analogsignals.append(sig)
-
-        if RecGate:
-            self.EventContGateDone = self.ContGateDoneCallback
-            for chk, chi, in sorted(self.GateChannelIndex.items()):
-                name = chk + '_Gate'
-                sig = neo.AnalogSignal(signal=np.empty((0, 1), float),
-                                       units=pq.V,
-                                       t_start=0*pq.s,
-                                       sampling_rate=Fs*pq.Hz,
-                                       name=name)
-                out_seg.analogsignals.append(sig)
-
-        # Add Vgs
-        sig = neo.AnalogSignal(signal=np.empty((0), float),
-                               units=pq.V,
-                               t_start=0*pq.s,
-                               sampling_rate=(1/Refresh)*pq.Hz,
-                               name='Vgs')
-        out_seg.analogsignals.append(sig)
-
-        # Add Vds
-        sig = neo.AnalogSignal(signal=np.empty((0), float),
-                               units=pq.V,
-                               t_start=0*pq.s,
-                               sampling_rate=(1/Refresh)*pq.Hz,
-                               name='Vds')
-        out_seg.analogsignals.append(sig)
-
-        self.ContRecord = NeoRecord(Seg=out_seg, UnitGain=1)
-
-        #  Lauch adquisition
-        self.SetBias(Vds=Vds, Vgs=Vgs)
-        self.GetContinuousCurrent(Fs=Fs,
-                                  Refresh=Refresh,
-                                  GenTestSig=GenTestSig)
-        self.CharactRunning = True
-
     def BiasAttemptCallBack(self, Ids, time, Dev):
         if self.EventCharBiasAttempt:
             self.EventCharBiasAttempt(Ids, time, Dev)
@@ -1102,10 +778,8 @@ class Charact(DataProcess):
             self.EventCharAcDataAcq(Ids, time)
         else:
             self.StopCharac()
-#        return self.CharactRunning
 
     def BiasDoneCallBack(self, Ids):
-
         for chn, inds in self.DCChannelIndex.items():
             self.DevDCVals[chn]['Ids'][self.SwVgsInd,
                                        self.SwVdsInd] = Ids[inds[1]]
@@ -1157,60 +831,13 @@ class Charact(DataProcess):
         if self.EventFFTDone:
             self.EventFFTDone(FFT)
 
-    def ContDcDoneCallback(self, Ids):
-        for chk, chi, in self.DCChannelIndex.items():
-            newvect = Ids[:, chi[1]].transpose()
-            self.ContRecord.AppendSignal(chk + '_DC', newvect[:, None])
-
-        tstop = self.ContRecord.Signal(ChName=chk + '_DC').t_stop
-
-        if (self.EventContAcDone is None) and (self.EventContGateDone is None):
-
-            self.ContRecord.AppendSignal('Vgs', self.Vgs)
-            self.ContRecord.AppendSignal('Vds', self.Vds)
-
-            if self.EventContinuousDone:
-                self.EventContinuousDone(tstop)
-
-    def ContGateDoneCallback(self, Igs):
-        for chk, chi, in self.GateChannelIndex.items():
-            newvect = Igs[:, chi[1]].transpose()
-            self.ContRecord.AppendSignal(chk + '_Gate', newvect[:, None])
-
-        tstop = self.ContRecord.Signal(ChName=chk + '_Gate').t_stop
-
-        if self.EventContAcDone is None:
-
-            self.ContRecord.AppendSignal('Vgs', self.Vgs)
-            self.ContRecord.AppendSignal('Vds', self.Vds)
-
-            if self.EventContinuousDone:
-                self.EventContinuousDone(tstop)
-
-    def ContAcDoneCallback(self, Ids):
-        for chk, chi, in self.ACChannelIndex.items():
-            newvect = Ids[:, chi[1]].transpose()
-            self.ContRecord.AppendSignal(chk + '_AC', newvect[:, None])
-
-        tstop = self.ContRecord.Signal(ChName=chk + '_AC').t_stop
-#        newvect2 = self.Vgs.transpose()
-        self.ContRecord.AppendSignal('Vgs', self.Vgs)
-        self.ContRecord.AppendSignal('Vds', self.Vds)
-
-        if self.EventContinuousDone:
-            self.EventContinuousDone(tstop)
-
     def StopCharac(self):
-        print('STOP')
+        print('STOP Charact')
         self.CharactRunning = False
 #        self.Inputs.ClearTask()
-        if self.ContRecord:
-            self.Inputs.StopContData()
-            if self.GenTestSig:
-                self.VgOut.ClearTask()
-                self.VgOut = WriteAnalog(('ao2',))
-                self.VgOut.SetVal(0)
-#                self.VgOut.StopTask()
-#                self.VgOut.DisableStartTrig()
-#                self.VgOut.SetVal(0)
-#                self.VgOut = None
+        # if self.ContRecord:
+        #     self.Inputs.StopContData()
+        #     if self.GenTestSig:
+        #         self.VgOut.ClearTask()
+        #         self.VgOut = DaqInt.WriteAnalog(('ao2',))
+        #         self.VgOut.SetVal(0)
