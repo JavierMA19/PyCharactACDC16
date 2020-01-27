@@ -201,8 +201,8 @@ class MainWindow(Qt.QWidget):
                     ChannelsKwargs = self.ChannelsPar.GetChannelsConfigKwargs()
 
             self.Charac = CoreMod.Charact(Channels=ChannelsKwargs['Channels'],
-                                          GateChannel=ChannelsKwargs['GateChannel'],)
-                                          # Configuration=ChannelsKwargs['Configuration'])
+                                          GateChannel=ChannelsKwargs['GateChannel'],
+                                           Configuration=ChannelsKwargs['Configuration'])
 
         if self.Charac.CharactRunning:
             print('STOOP')
