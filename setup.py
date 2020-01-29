@@ -43,7 +43,7 @@ install_requires = ['numpy',
                     'pyqttools==0.0.5.1',
                     ]
 
-console_scripts = ['GFETCharactGui16 = PyCharactACDC16.GuiCharact16:main',
+console_scripts = ['GFETCharactGui16 = PyCharactACDC16.PyCharact16Gui:main',
                    ]
 
 entry_points = {'console_scripts': console_scripts, }
