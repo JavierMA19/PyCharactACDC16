@@ -21,6 +21,7 @@ from pyqtgraph.parametertree import Parameter, ParameterTree
 import PyqtTools.FileModule as FileMod
 import PyqtTools.SweepsModule as SweepMod
 import PyqtTools.ACModule as BodeMod
+import pickle
 
 import PyGFETdb.PlotDataClass as PyFETpl
 import PyCharact16Core.Charact16Thread as CharactMod
@@ -323,11 +324,14 @@ class MainWindow(Qt.QWidget):
     def CharSweepDoneCallBack(self, Dcdict, Acdict):
         if self.FileName:
             Filename = self.FileName + "{}-Cy{}.h5".format('', self.initCy)
-            if Acdict:
-                dd.io.save(Filename, (Dcdict, Acdict), ('zlib', 1))
-#                pickle.dump(Acdict, open('SaveDcData.pkl', 'wb'))
-            else:
-                dd.io.save(Filename, Dcdict, ('zlib', 1))
+            with open(Filename, "wb") as f:
+                if Acdict:
+                    pickle.dump((Dcdict, Acdict), f)
+                    # dd.io.save(Filename, (Dcdict, Acdict), ('zlib', 1))
+    #                pickle.dump(Acdict, open('SaveDcData.pkl', 'wb'))
+                else:
+                    pickle.dump(Dcdict, f)
+                    # dd.io.save(Filename, Dcdict, ('zlib', 1))
         self.NextCycle()
 
     def CharBiasDoneCallBack(self, Dcdict):
