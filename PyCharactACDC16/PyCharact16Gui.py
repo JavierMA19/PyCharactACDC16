@@ -323,7 +323,7 @@ class MainWindow(Qt.QWidget):
 
     def CharSweepDoneCallBack(self, Dcdict, Acdict):
         if self.FileName:
-            Filename = self.FileName + "{}-Cy{}.h5".format('', self.initCy)
+            Filename = self.FileName + "{}-Cy{}.pkl".format('', self.initCy)
             with open(Filename, "wb") as f:
                 if Acdict:
                     pickle.dump((Dcdict, Acdict), f)
